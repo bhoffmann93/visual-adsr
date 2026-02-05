@@ -1,0 +1,24 @@
+TypeScript ADSR Envelope Generator
+
+This is a derivative work based on the original ADSR implementation by
+Nigel Redmon. The following copyrights apply:
+
+Original C++ ADSR Algorithm and Implementation:
+Copyright (c) 2012 Nigel Redmon (EarLevel Engineering)
+http://www.earlevel.com/main/2013/06/01/envelope-generators/
+
+Java/Processing DeltaTime Adaptation:
+Copyright (c) 2014 Bart Bralski
+https://sourceforge.net/p/processingplayground/code/HEAD/tree/deflemask/ADSR.pde
+
+TypeScript Port, Type Definitions, and Library Structure:
+Copyright (c) 2026 Bernhard Hoffmann
+
+---
+
+License (from original source code by Nigel Redmon):
+
+This source code is provided as is, without warranty.
+You may copy and distribute verbatim copies of this document.
+You may modify and use this source code to create binary code for your own
+purposes, free or commercial.
