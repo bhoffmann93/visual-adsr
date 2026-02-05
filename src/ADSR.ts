@@ -5,8 +5,8 @@
 //  http://www.earlevel.com/main/2013/06/01/envelope-generators/
 //  Adapted for Typescript to use deltaTime for Visual Elements from Processing Code by Bart Bralski (2014)
 //  https://sourceforge.net/p/processingplayground/code/HEAD/tree/deflemask/ADSR.pde
-import { ASDR_CURVE, AdsrConfig } from '../../config/adsr.config.js';
-import { clamp } from '../../utils/math.utils.js';
+import { ASDR_CURVE, AdsrConfig } from './config.js';
+import { clamp } from './utils.js';
 
 export enum AdsrState {
   IDLE = 'IDLE',
