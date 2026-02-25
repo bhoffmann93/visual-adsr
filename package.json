@@ -1,7 +1,7 @@
 {
-  "name": "adsr",
+  "name": "adsr-shape",
   "version": "1.0.0",
-  "description": "A TypeScript ADSR (Attack, Decay, Sustain, Release) envelope generator with deltaTime support for frame-independent animation",
+  "description": "Frame-independent ADSR envelope generator for shaping visual elements and animations",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -19,21 +19,25 @@
   ],
   "scripts": {
     "build": "tsc",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
     "adsr",
     "envelope",
     "animation",
-    "audio",
     "easing",
+    "shaping",
+    "motion",
+    "visual",
     "typescript"
   ],
   "author": "Bernhard Hoffmann",
   "license": "SEE LICENSE IN LICENSE",
+  "homepage": "https://github.com/bhoffmann93/ADSR#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/adsr.git"
+    "url": "https://github.com/bhoffmann93/ADSR.git"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>adsr-shape — demo</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111;
+        --border: #1e1e1e;
+        --accent: #4a9eff;
+        --accent-dim: #4a9eff22;
+        --text: #c8c8c8;
+        --muted: #484848;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 58px 29px 77px;
+        gap: 34px;
+      }
+
+      header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 7px;
+      }
+
+      h1 {
+        font-size: 0.84rem;
+        letter-spacing: 0.35em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      h1 em {
+        font-style: normal;
+        color: var(--accent);
+      }
+
+      .tagline {
+        font-size: 0.66rem;
+        letter-spacing: 0.15em;
+        color: var(--muted);
+      }
+
+      /* ── Stage ─────────────────────────────────────── */
+      .stage {
+        width: 312px;
+        height: 312px;
+        border: 1px solid var(--border);
+        border-radius: 19px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .stage::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 110%, #4a9eff08 0%, transparent 65%);
+        pointer-events: none;
+      }
+
+      .circle {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 24px #4a9eff55;
+        transform: scale(0.8);
+        will-change: transform, opacity, box-shadow;
+      }
+
+      /* ── Envelope curve canvas ─────────────────────── */
+      .curve-wrap {
+        width: 312px;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+
+      .curve-label {
+        font-size: 0.6rem;
+        letter-spacing: 0.2em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      canvas {
+        width: 312px;
+        height: 86px;
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        display: block;
+      }
+
+      /* ── Controls ──────────────────────────────────── */
+      .panel {
+        width: 312px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 74px 1fr 55px;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .param-label {
+        font-size: 0.66rem;
+        letter-spacing: 0.18em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      input[type='range'] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 2px;
+        background: var(--border);
+        border-radius: 1px;
+        outline: none;
+        cursor: pointer;
+      }
+
+      input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background: var(--accent);
+        cursor: pointer;
+        transition: transform 0.1s;
+      }
+
+      input[type='range']:hover::-webkit-slider-thumb {
+        transform: scale(1.3);
+      }
+
+      .val {
+        font-size: 0.7rem;
+        color: var(--accent);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* ── Trigger button ────────────────────────────── */
+      button {
+        width: 312px;
+        padding: 16px;
+        background: none;
+        border: 1px solid var(--accent);
+        color: var(--accent);
+        font-family: inherit;
+        font-size: 0.72rem;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: background 0.08s;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: none;
+      }
+
+      button:hover {
+        background: var(--accent-dim);
+      }
+      button.active {
+        background: #4a9eff18;
+        border-color: #7fc0ff;
+        color: #7fc0ff;
+      }
+
+      /* ── State badge ───────────────────────────────── */
+      .state {
+        font-size: 0.6rem;
+        letter-spacing: 0.25em;
+        color: var(--muted);
+        text-transform: uppercase;
+      }
+
+      .state span {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1><em>adsr-shape</em></h1>
+      <p class="tagline">envelope shaping for visual elements</p>
+    </header>
+
+    <div class="stage">
+      <div class="circle" id="circle"></div>
+    </div>
+
+    <div class="curve-wrap">
+      <span class="curve-label">envelope preview</span>
+      <canvas id="envCanvas" width="624" height="172"></canvas>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <span class="param-label">Attack</span>
+        <input type="range" id="attack" min="0.01" max="3" step="0.01" value="0.5" />
+        <span class="val" id="attackVal">0.30s</span>
+      </div>
+      <div class="row">
+        <span class="param-label">Decay</span>
+        <input type="range" id="decay" min="0" max="2" step="0.01" value="0.5" />
+        <span class="val" id="decayVal">0.30s</span>
+      </div>
+      <div class="row">
+        <span class="param-label">Sustain</span>
+        <input type="range" id="sustain" min="0" max="1" step="0.01" value="0.5" />
+        <span class="val" id="sustainVal">0.50</span>
+      </div>
+      <div class="row">
+        <span class="param-label">Release</span>
+        <input type="range" id="release" min="0.01" max="4" step="0.01" value="1.0" />
+        <span class="val" id="releaseVal">1.00s</span>
+      </div>
+    </div>
+
+    <button id="btn">Trigger (Press Space)</button>
+    <div class="state">state: <span id="stateLabel">IDLE</span></div>
+
+    <script type="module">
+      import { ADSR } from '../dist/index.js';
+
+      const env = new ADSR({ attack: 0.5, decay: 0.5, sustain: 0.5, release: 1.0 });
+
+      const circle = document.getElementById('circle');
+      const stateLabel = document.getElementById('stateLabel');
+      const canvas = document.getElementById('envCanvas');
+      const ctx = canvas.getContext('2d');
+      const btn = document.getElementById('btn');
+
+      // ── Sliders ─────────────────────────────────────────────────────
+      function bindSlider(id, setter, fmt) {
+        const el = document.getElementById(id);
+        const val = document.getElementById(id + 'Val');
+        el.addEventListener('input', () => {
+          const v = parseFloat(el.value);
+          setter(v);
+          val.textContent = fmt(v);
+          drawCurve();
+        });
+      }
+
+      bindSlider(
+        'attack',
+        (v) => env.setAttackTime(v),
+        (v) => v.toFixed(2) + 's',
+      );
+      bindSlider(
+        'decay',
+        (v) => env.setDecayTime(v),
+        (v) => v.toFixed(2) + 's',
+      );
+      bindSlider(
+        'sustain',
+        (v) => env.setSustainLevel(v),
+        (v) => v.toFixed(2),
+      );
+      bindSlider(
+        'release',
+        (v) => env.setReleaseTime(v),
+        (v) => v.toFixed(2) + 's',
+      );
+
+      // ── Trigger ─────────────────────────────────────────────────────
+      function gateOn(e) {
+        if (e) e.preventDefault();
+        env.gate(true);
+        btn.classList.add('active');
+      }
+      function gateOff() {
+        env.gate(false);
+        btn.classList.remove('active');
+      }
+
+      btn.addEventListener('mousedown', gateOn);
+      btn.addEventListener('mouseup', gateOff);
+      btn.addEventListener('mouseleave', gateOff);
+      btn.addEventListener('touchstart', gateOn, { passive: false });
+      btn.addEventListener('touchend', gateOff, { passive: false });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && !e.repeat) {
+          e.preventDefault();
+          gateOn();
+        }
+      });
+      document.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') gateOff();
+      });
+
+      // ── Animation loop ───────────────────────────────────────────────
+      const MIN_SCALE = 0.8;
+      const MAX_SCALE = 2.5;
+      let lastTime = 0;
+
+      function loop(now) {
+        const dt = Math.min((now - lastTime) / 1000, 0.1);
+        lastTime = now;
+
+        const v = env.process(dt);
+        const scale = MIN_SCALE + v * (MAX_SCALE - MIN_SCALE);
+        const glow = Math.round(v * 64);
+        const alpha = (0.3 + v * 0.7).toFixed(3);
+        const hex = Math.round(v * 0x99)
+          .toString(16)
+          .padStart(2, '0');
+
+        circle.style.transform = `scale(${scale.toFixed(4)})`;
+        circle.style.opacity = alpha;
+        circle.style.boxShadow = `0 0 ${glow}px #4a9eff${hex}`;
+
+        stateLabel.textContent = env.getState();
+        requestAnimationFrame(loop);
+      }
+
+      requestAnimationFrame((t) => {
+        lastTime = t;
+        requestAnimationFrame(loop);
+      });
+
+      // ── Envelope curve preview ───────────────────────────────────────
+      function drawCurve() {
+        const A = parseFloat(document.getElementById('attack').value);
+        const D = parseFloat(document.getElementById('decay').value);
+        const S = parseFloat(document.getElementById('sustain').value);
+        const R = parseFloat(document.getElementById('release').value);
+
+        const holdTime = A + D + Math.max(0.3, A * 0.5);
+        const totalTime = holdTime + R;
+
+        const W = canvas.width;
+        const H = canvas.height;
+        const pad = { x: 17, y: 17 };
+        const iW = W - pad.x * 2;
+        const iH = H - pad.y * 2;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Grid
+        ctx.strokeStyle = '#1c1c1c';
+        ctx.lineWidth = 1;
+        for (let i = 1; i < 4; i++) {
+          const y = pad.y + (iH / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(pad.x, y);
+          ctx.lineTo(W - pad.x, y);
+          ctx.stroke();
+        }
+
+        // Gate-off line
+        const gateOffX = pad.x + (holdTime / totalTime) * iW;
+        ctx.strokeStyle = '#ffffff0a';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 5]);
+        ctx.beginPath();
+        ctx.moveTo(gateOffX, pad.y);
+        ctx.lineTo(gateOffX, H - pad.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Simulate envelope
+        const sim = new ADSR({ attack: A, decay: D, sustain: S, release: R });
+        const steps = iW;
+        const dt = totalTime / steps;
+
+        let gateOpen = false;
+        const points = [];
+
+        for (let i = 0; i <= steps; i++) {
+          const t = i * dt;
+          if (!gateOpen) {
+            sim.gate(true);
+            gateOpen = true;
+          }
+          if (gateOpen && t >= holdTime) {
+            sim.gate(false);
+            gateOpen = false;
+          }
+          const val = sim.process(dt);
+          points.push({ x: pad.x + i, y: pad.y + (1 - val) * iH });
+        }
+
+        // Fill
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (const p of points) ctx.lineTo(p.x, p.y);
+        ctx.lineTo(W - pad.x, H - pad.y);
+        ctx.lineTo(pad.x, H - pad.y);
+        ctx.closePath();
+        ctx.fillStyle = '#4a9eff10';
+        ctx.fill();
+
+        // Line
+        ctx.beginPath();
+        ctx.strokeStyle = '#4a9eff';
+        ctx.lineWidth = 1.5;
+        ctx.lineJoin = 'round';
+        ctx.moveTo(points[0].x, points[0].y);
+        for (const p of points) ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+      }
+
+      drawCurve();
+    </script>
+  </body>
+</html>

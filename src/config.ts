@@ -5,9 +5,9 @@ export interface AdsrConfig {
   release: number;
   curve?: AdsrCurveType;
 }
-export type AdsrCurveType = (typeof ASDR_CURVE)[keyof typeof ASDR_CURVE];
+export type AdsrCurveType = (typeof ADSR_CURVE)[keyof typeof ADSR_CURVE];
 
-export const ASDR_CURVE = {
+export const ADSR_CURVE = {
   SNAPPY: 0.0001,
   PUNCHY: 0.001,
   ROBOTIC: 0.1,
@@ -27,20 +27,20 @@ export const ADSR_PRESETS = {
     decay: 0.25,
     sustain: 1.0,
     release: 0.25,
-    curve: ASDR_CURVE.DEFAULT,
+    curve: ADSR_CURVE.DEFAULT,
   },
   mechanical: {
     attack: 0.1,
     decay: 0.0,
     sustain: 1.0,
     release: 0.1,
-    curve: ASDR_CURVE.LINEAR,
+    curve: ADSR_CURVE.LINEAR,
   },
   smooth: {
     attack: 0.1,
     decay: 0.0,
     sustain: 1.0,
     release: 0.1,
-    curve: ASDR_CURVE.DEFAULT,
+    curve: ADSR_CURVE.DEFAULT,
   },
 } as const as Record<string, AdsrConfig>;
