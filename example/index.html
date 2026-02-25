@@ -14,13 +14,12 @@
       }
 
       :root {
-        --bg: #0a0a0a;
-        --surface: #111;
-        --border: #1e1e1e;
-        --accent: #4a9eff;
-        --accent-dim: #4a9eff22;
-        --text: #c8c8c8;
-        --muted: #484848;
+        --bg: #ecedf0;
+        --border: #d2d3da;
+        --accent: #1e3a8a;
+        --accent-dim: #1e3a8a14;
+        --text: #1a1a2e;
+        --muted: #8a8a9e;
       }
 
       body {
@@ -60,7 +59,6 @@
         color: var(--muted);
       }
 
-      /* ── Stage ─────────────────────────────────────── */
       .stage {
         width: 312px;
         height: 312px;
@@ -71,14 +69,7 @@
         justify-content: center;
         position: relative;
         overflow: hidden;
-      }
-
-      .stage::after {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(ellipse at 50% 110%, #4a9eff08 0%, transparent 65%);
-        pointer-events: none;
+        background: #f0f1f4;
       }
 
       .circle {
@@ -86,12 +77,10 @@
         height: 72px;
         border-radius: 50%;
         background: var(--accent);
-        box-shadow: 0 0 24px #4a9eff55;
         transform: scale(0.8);
         will-change: transform, opacity, box-shadow;
       }
 
-      /* ── Envelope curve canvas ─────────────────────── */
       .curve-wrap {
         width: 312px;
         display: flex;
@@ -112,9 +101,9 @@
         border: 1px solid var(--border);
         border-radius: 7px;
         display: block;
+        background: #f0f1f4;
       }
 
-      /* ── Controls ──────────────────────────────────── */
       .panel {
         width: 312px;
         display: flex;
@@ -168,7 +157,6 @@
         font-variant-numeric: tabular-nums;
       }
 
-      /* ── Trigger button ────────────────────────────── */
       button {
         width: 312px;
         padding: 16px;
@@ -190,13 +178,13 @@
       button:hover {
         background: var(--accent-dim);
       }
+
       button.active {
-        background: #4a9eff18;
-        border-color: #7fc0ff;
-        color: #7fc0ff;
+        background: #1e3a8a18;
+        border-color: #4a6ab0;
+        color: #4a6ab0;
       }
 
-      /* ── State badge ───────────────────────────────── */
       .state {
         font-size: 0.6rem;
         letter-spacing: 0.25em;
@@ -228,12 +216,12 @@
       <div class="row">
         <span class="param-label">Attack</span>
         <input type="range" id="attack" min="0.01" max="3" step="0.01" value="0.5" />
-        <span class="val" id="attackVal">0.30s</span>
+        <span class="val" id="attackVal">0.50s</span>
       </div>
       <div class="row">
         <span class="param-label">Decay</span>
         <input type="range" id="decay" min="0" max="2" step="0.01" value="0.5" />
-        <span class="val" id="decayVal">0.30s</span>
+        <span class="val" id="decayVal">0.50s</span>
       </div>
       <div class="row">
         <span class="param-label">Sustain</span>
@@ -253,7 +241,7 @@
     <script type="module">
       import { ADSR } from '../dist/index.js';
 
-      const env = new ADSR({ attack: 0.5, decay: 0.5, sustain: 0.5, release: 1.0 });
+      const env = new ADSR({ attack: 0.5, decay: 0.5, sustain: 0.5, release: 1.0, curve: 0.2 });
 
       const circle = document.getElementById('circle');
       const stateLabel = document.getElementById('stateLabel');
@@ -261,7 +249,6 @@
       const ctx = canvas.getContext('2d');
       const btn = document.getElementById('btn');
 
-      // ── Sliders ─────────────────────────────────────────────────────
       function bindSlider(id, setter, fmt) {
         const el = document.getElementById(id);
         const val = document.getElementById(id + 'Val');
@@ -294,7 +281,6 @@
         (v) => v.toFixed(2) + 's',
       );
 
-      // ── Trigger ─────────────────────────────────────────────────────
       function gateOn(e) {
         if (e) e.preventDefault();
         env.gate(true);
@@ -321,7 +307,6 @@
         if (e.code === 'Space') gateOff();
       });
 
-      // ── Animation loop ───────────────────────────────────────────────
       const MIN_SCALE = 0.8;
       const MAX_SCALE = 2.5;
       let lastTime = 0;
@@ -332,15 +317,15 @@
 
         const v = env.process(dt);
         const scale = MIN_SCALE + v * (MAX_SCALE - MIN_SCALE);
-        const glow = Math.round(v * 64);
-        const alpha = (0.3 + v * 0.7).toFixed(3);
-        const hex = Math.round(v * 0x99)
+        const glow = Math.round(v * 40);
+        const alpha = (0.2 + v * 0.8).toFixed(3);
+        const hex = Math.round(v * 0x88)
           .toString(16)
           .padStart(2, '0');
 
         circle.style.transform = `scale(${scale.toFixed(4)})`;
         circle.style.opacity = alpha;
-        circle.style.boxShadow = `0 0 ${glow}px #4a9eff${hex}`;
+        circle.style.boxShadow = `0 0 ${glow}px #1e3a8a${hex}`;
 
         stateLabel.textContent = env.getState();
         requestAnimationFrame(loop);
@@ -351,7 +336,6 @@
         requestAnimationFrame(loop);
       });
 
-      // ── Envelope curve preview ───────────────────────────────────────
       function drawCurve() {
         const A = parseFloat(document.getElementById('attack').value);
         const D = parseFloat(document.getElementById('decay').value);
@@ -369,8 +353,7 @@
 
         ctx.clearRect(0, 0, W, H);
 
-        // Grid
-        ctx.strokeStyle = '#1c1c1c';
+        ctx.strokeStyle = '#d2d3da';
         ctx.lineWidth = 1;
         for (let i = 1; i < 4; i++) {
           const y = pad.y + (iH / 4) * i;
@@ -380,9 +363,8 @@
           ctx.stroke();
         }
 
-        // Gate-off line
         const gateOffX = pad.x + (holdTime / totalTime) * iW;
-        ctx.strokeStyle = '#ffffff0a';
+        ctx.strokeStyle = '#00000018';
         ctx.lineWidth = 1;
         ctx.setLineDash([3, 5]);
         ctx.beginPath();
@@ -391,7 +373,6 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Simulate envelope
         const sim = new ADSR({ attack: A, decay: D, sustain: S, release: R });
         const steps = iW;
         const dt = totalTime / steps;
@@ -413,19 +394,17 @@
           points.push({ x: pad.x + i, y: pad.y + (1 - val) * iH });
         }
 
-        // Fill
         ctx.beginPath();
         ctx.moveTo(points[0].x, points[0].y);
         for (const p of points) ctx.lineTo(p.x, p.y);
         ctx.lineTo(W - pad.x, H - pad.y);
         ctx.lineTo(pad.x, H - pad.y);
         ctx.closePath();
-        ctx.fillStyle = '#4a9eff10';
+        ctx.fillStyle = '#1e3a8a0e';
         ctx.fill();
 
-        // Line
         ctx.beginPath();
-        ctx.strokeStyle = '#4a9eff';
+        ctx.strokeStyle = '#1e3a8a';
         ctx.lineWidth = 1.5;
         ctx.lineJoin = 'round';
         ctx.moveTo(points[0].x, points[0].y);
