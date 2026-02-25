@@ -1,160 +1,161 @@
-# ADSR Envelope Generator
+# adsr-shape
 
-A TypeScript implementation of an ADSR (Attack, Decay, Sustain, Release) envelope generator with deltaTime support for frame-independent animation.
+A frame-independent ADSR envelope generator for shaping visual elements and animations. Think of it as a shaping function with — attack, decay, sustain, release.
 
-## Overview
+```
+value
+ 1.0 ┤         ╭─╮
+     │        /   \
+     │       /     ╲___________
+ S   │      /                  ╲
+ 0.0 ┤_____/                    ╲___
+      idle  A    D    sustain    R   idle
+```
 
-This ADSR envelope generator is based on the original C++ implementation by Nigel Redmon (EarLevel Engineering) and adapted for TypeScript with deltaTime support for visual elements. It provides smooth, frame-rate independent envelope control meant to be used for animation – think of it as a sophisticated shaping function.
+The envelope outputs a value between `0.0` and `1.0`. Use it as a multiplier, a lerp factor, or map it to whatever property you're animating.
 
-## Features
-
-- **Frame-independent**: Uses deltaTime for consistent behavior across different frame rates
-- **Configurable curves**: Exponential to linear curve shapes for attack and decay/release
-- **Preset library**: Common ADSR presets (punchy, snappy, pad, pluck, etc.)
-- **TypeScript**: Fully typed for better IDE support and type safety
-- **Lightweight**: Zero dependencies, minimal footprint
-
-## Installation
+## Install
 
 ```bash
-npm install @your-username/adsr
+# GitHub (no registry required)
+npm install github:bhoffmann93/ADSR
+
+# npm (once published)
+npm install adsr-shape
 ```
 
-## Usage
-
-### Basic Example
+## Quick start
 
 ```typescript
-import { ADSR, AdsrState } from '@your-username/adsr';
+import { ADSR } from 'adsr-shape';
 
-// Create an ADSR envelope
-const envelope = new ADSR({
-  attack: 0.1, // 100ms attack
-  decay: 0.2, // 200ms decay
-  sustain: 0.7, // 70% sustain level
-  release: 0.5, // 500ms release
+const env = new ADSR({
+  attack: 0.1, // seconds to reach peak
+  decay: 0.2, // seconds to fall to sustain
+  sustain: 0.6, // hold level (0–1) while triggered
+  release: 0.8, // seconds to fall back to 0 after release
 });
 
-// Trigger the envelope (note on)
-envelope.gate(true);
+// Trigger on pointer down, release on pointer up
+button.addEventListener('pointerdown', () => env.gate(true));
+button.addEventListener('pointerup', () => env.gate(false));
 
-// In your animation/audio loop
-function update(deltaTime: number) {
-  const value = envelope.process(deltaTime);
-  // Use the envelope value (0.0 to 1.0)
-  volume = value * maxVolume;
+let last = 0;
+function frame(now: number) {
+  const deltaTime = (now - last) / 1000; // seconds
+  last = now;
+  const value = env.process(deltaTime); // 0.0 → 1.0
+
+  circle.style.transform = `scale(${1 + value * 2})`;
+  circle.style.opacity = String(0.3 + value * 0.7);
+
+  requestAnimationFrame(frame);
 }
 
-// Release the envelope (note off)
-envelope.gate(false);
-```
-
-### Using Presets
-
-```typescript
-import { ADSR, ADSR_PRESETS } from '@your-username/adsr';
-
-const pluckEnvelope = new ADSR(ADSR_PRESETS.pluck);
-const padEnvelope = new ADSR(ADSR_PRESETS.pad);
-```
-
-### Custom Curves
-
-```typescript
-import { ADSR, ASDR_CURVE } from '@your-username/adsr';
-
-const envelope = new ADSR({
-  attack: 0.05,
-  decay: 0.1,
-  sustain: 0.6,
-  release: 0.3,
-  curve: ASDR_CURVE.SNAPPY, // More exponential curve
+requestAnimationFrame((t) => {
+  last = t;
+  requestAnimationFrame(frame);
 });
 ```
 
 ## API
 
-### Constructor
+### `new ADSR(config?)`
 
 ```typescript
-new ADSR(config?: AdsrConfig)
+const env = new ADSR({
+  attack: 0.1, // seconds
+  decay: 0.2, // seconds
+  sustain: 0.7, // 0.0 – 1.0
+  release: 0.5, // seconds
+  curve: undefined, // optional — see Curves below
+});
 ```
-
-**AdsrConfig:**
-
-- `attack: number` - Attack time in seconds
-- `decay: number` - Decay time in seconds
-- `sustain: number` - Sustain level (0.0 to 1.0)
-- `release: number` - Release time in seconds
-- `curve?: AdsrCurveType` - Optional curve type for attack and decay/release
 
 ### Methods
 
-#### `process(deltaTime: number): number`
+| Method                        | Description                                                        |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `process(dt: number): number` | Advance the envelope by `dt` seconds. Returns current value `0–1`. |
+| `gate(on: boolean \| number)` | `true` / `1` starts attack. `false` / `0` triggers release.        |
+| `getOutput(): number`         | Current envelope value without advancing.                          |
+| `getState(): AdsrState`       | `IDLE` · `ATTACK` · `DECAY` · `SUSTAIN` · `RELEASE`                |
+| `setAttackTime(s)`            | Update attack duration in seconds.                                 |
+| `setDecayTime(s)`             | Update decay duration in seconds.                                  |
+| `setSustainLevel(n)`          | Update sustain level `0–1`.                                        |
+| `setReleaseTime(s)`           | Update release duration in seconds.                                |
+| `reset()`                     | Snap back to idle / zero output.                                   |
 
-Process the envelope for the given time delta. Returns the current envelope value (0.0 to 1.0).
+### Curves
 
-#### `gate(gate: boolean | number): void`
+The `curve` option controls the exponential character of the shape — how snappy or smooth the transitions feel.
 
-Trigger (true/1) or release (false/0) the envelope.
+```typescript
+import { ADSR, ADSR_CURVE } from 'adsr-shape';
 
-#### `getOutput(): number`
+const env = new ADSR({
+  attack: 0.05,
+  decay: 0.3,
+  sustain: 0.0,
+  release: 0.2,
+  curve: ADSR_CURVE.SNAPPY,
+});
+```
 
-Get the current envelope output value.
+| Constant             | Value    | Feel               |
+| -------------------- | -------- | ------------------ |
+| `ADSR_CURVE.SNAPPY`  | `0.0001` | Sharp, percussive  |
+| `ADSR_CURVE.PUNCHY`  | `0.001`  | Punchy, fast       |
+| `ADSR_CURVE.ROBOTIC` | `0.1`    | Moderate           |
+| `ADSR_CURVE.DEFAULT` | `0.3`    | Balanced (default) |
+| `ADSR_CURVE.LINEAR`  | `100.0`  | Near-linear        |
 
-#### `getState(): AdsrState`
+### Presets
 
-Get the current envelope state (IDLE, ATTACK, DECAY, SUSTAIN, or RELEASE).
+```typescript
+import { ADSR, ADSR_PRESETS } from 'adsr-shape';
 
-#### `setAttackTime(seconds: number): void`
+const env = new ADSR(ADSR_PRESETS.flash);
+```
 
-Set the attack time.
+| Preset       | Character                         |
+| ------------ | --------------------------------- |
+| `default`    | General purpose                   |
+| `punchy`     | Instant attack, fast release      |
+| `snappy`     | Short pop                         |
+| `pad`        | Slow, long release — fades gently |
+| `flash`      | Quick flash, no sustain           |
+| `pluck`      | Plucked feel                      |
+| `pulse`      | Rises and falls with sustain      |
+| `mechanical` | Linear, robotic                   |
+| `smooth`     | Smooth in/out                     |
 
-#### `setDecayTime(seconds: number): void`
+## Example: scale a circle on click
 
-Set the decay time.
+See [`example/index.html`](./example/index.html) for a live demo — adjust attack, decay, sustain, and release with sliders and hold a button to trigger the envelope. An envelope curve preview updates in real time.
 
-#### `setSustainLevel(level: number): void`
+To run locally:
 
-Set the sustain level (0.0 to 1.0).
+```bash
+npm run build
+# then open example/index.html in a browser
+```
 
-#### `setReleaseTime(seconds: number): void`
+## What it's good for
 
-Set the release time.
-
-#### `reset(): void`
-
-Reset the envelope to its idle state.
-
-## Curve Types
-
-Available curve types from `ASDR_CURVE`:
-
-- `SNAPPY: 0.0001` - Very exponential
-- `PUNCHY: 0.001` - Exponential
-- `ROBOTIC: 0.1` - Moderately exponential
-- `DEFAULT: 0.3` - Balanced
-- `LINEAR: 100.0` - Nearly linear
-
-## Presets
-
-Available presets from `ADSR_PRESETS`:
-
-- `default` - General purpose
-- `punchy` - Fast attack/release for percussive sounds
-- `snappy` - Very short, snappy envelope
-- `pad` - Long release for ambient sounds
-- `flash` - Quick flash effect
-- `pluck` - Plucked string simulation
-- `pulse` - Pulsing effect
-- `mechanical` - Linear, robotic feel
-- `smooth` - Smooth transitions
+- Animating CSS transforms (`scale`, `translate`, `rotate`)
+- Driving opacity or color interpolation
+- Controlling blur or shadow intensity
+- Scripting canvas/WebGL effects
+- Anything that benefits from organic, attack/release timing instead of fixed tweens
 
 ## Credits
 
-- Original C++ implementation: Nigel Redmon (EarLevel Engineering)
-  - http://www.earlevel.com/main/2013/06/01/envelope-generators/
-- Processing adaptation: Bart Bralski (2014)
-  - https://sourceforge.net/p/processingplayground/code/HEAD/tree/deflemask/ADSR.pde
+Based on the C++ envelope generator by Nigel Redmon (EarLevel Engineering):
+http://www.earlevel.com/main/2013/06/01/envelope-generators/
+
+With deltaTime adaptation inspired by Bart Bralski's Processing port (2014).
 
 ## License
+
+See [LICENSE](./LICENSE)

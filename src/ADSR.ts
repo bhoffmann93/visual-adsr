@@ -6,8 +6,7 @@
 //  Adapted for Typescript to use deltaTime for Visual Elements from Processing Code by Bart Bralski (2014)
 //  https://sourceforge.net/p/processingplayground/code/HEAD/tree/deflemask/ADSR.pde
 
-import { ASDR_CURVE, AdsrConfig } from './config.js';
-import { clamp } from './utils.js';
+import { ADSR_CURVE, AdsrConfig } from './config.js';
 
 export enum AdsrState {
   IDLE = 'IDLE',
@@ -17,21 +16,17 @@ export enum AdsrState {
   RELEASE = 'RELEASE',
 }
 
-//curve exp (small values) to linear (high values)
-//curves are in for attack out for releasae
-
 export class ADSR {
   protected state: AdsrState;
   protected output: number;
 
-  // Time constants (in seconds)
+  // in seconds
   protected attackTime: number;
   protected decayTime: number;
   protected releaseTime: number;
 
   protected sustainLevel: number;
 
-  // These are the "Target" coefficients for 1 second of time
   protected attackCoef: number;
   protected decayCoef: number;
   protected releaseCoef: number;
@@ -40,8 +35,10 @@ export class ADSR {
   protected decayBase: number;
   protected releaseBase: number;
 
-  protected targetRatioA: number;
-  protected targetRatioDR: number;
+  //curve exp (small values) to linear (high values)
+  //curves are in for attack out for releasae
+  protected targetRatioAttack: number; //attack curve shape
+  protected targetRatioDecayRelease: number; //decay release curve shape
 
   constructor(
     config: AdsrConfig = {
@@ -55,13 +52,10 @@ export class ADSR {
     this.state = AdsrState.IDLE;
     this.output = 0.0;
 
-    // this.targetRatioA = targetRatioA;
-    // this.targetRatioDR = targetRatioDR;
-    this.targetRatioA = config.curve ?? ASDR_CURVE.DEFAULT; // ASDR_CURVE.DEFAULT, //shape rise to 1.0
-    this.targetRatioDR = config.curve ?? ASDR_CURVE.SNAPPY; // ASDR_CURVE.SNAPPY //shape fallback to 0.0
+    this.targetRatioAttack = config.curve ?? ADSR_CURVE.DEFAULT; // shape rise to 1.0
+    this.targetRatioDecayRelease = config.curve ?? ADSR_CURVE.SNAPPY; // shape fallback to 0.0
     this.sustainLevel = config.sustain;
 
-    // Initialize coefficients
     this.attackCoef = 0;
     this.decayCoef = 0;
     this.releaseCoef = 0;
@@ -81,7 +75,6 @@ export class ADSR {
   }
 
   public process(deltaTime: number): number {
-    // If deltaTime is 0 or huge (lag spike), clamp it to avoid math errors
     if (deltaTime <= 0) return this.output;
 
     // We calculate the coefficient for THIS specific frame duration.
@@ -96,9 +89,8 @@ export class ADSR {
         return 0;
 
       case AdsrState.ATTACK:
-        // Adjust coef based on how much time passed this frame
         currentCoef = Math.pow(this.attackCoef, deltaTime);
-        currentBase = (1.0 + this.targetRatioA) * (1.0 - currentCoef);
+        currentBase = (1.0 + this.targetRatioAttack) * (1.0 - currentCoef);
 
         this.output = currentBase + this.output * currentCoef;
 
@@ -110,7 +102,7 @@ export class ADSR {
 
       case AdsrState.DECAY:
         currentCoef = Math.pow(this.decayCoef, deltaTime);
-        currentBase = (this.sustainLevel - this.targetRatioDR) * (1.0 - currentCoef);
+        currentBase = (this.sustainLevel - this.targetRatioDecayRelease) * (1.0 - currentCoef);
 
         this.output = currentBase + this.output * currentCoef;
 
@@ -125,7 +117,7 @@ export class ADSR {
 
       case AdsrState.RELEASE:
         currentCoef = Math.pow(this.releaseCoef, deltaTime);
-        currentBase = -this.targetRatioDR * (1.0 - currentCoef);
+        currentBase = -this.targetRatioDecayRelease * (1.0 - currentCoef);
 
         this.output = currentBase + this.output * currentCoef;
 
@@ -159,34 +151,26 @@ export class ADSR {
 
   public setAttackTime(seconds: number): void {
     this.attackTime = seconds;
-    this.attackCoef = this.calcCoef(seconds, this.targetRatioA);
+    this.attackCoef = this.calcCoef(seconds, this.targetRatioAttack);
   }
 
   public setDecayTime(seconds: number): void {
-    seconds = clamp(seconds, 0.0, 1.0);
+    seconds = Math.max(0, seconds);
     this.decayTime = seconds;
-    this.decayCoef = this.calcCoef(seconds, this.targetRatioDR);
+    this.decayCoef = this.calcCoef(seconds, this.targetRatioDecayRelease);
   }
 
   public setReleaseTime(seconds: number): void {
     this.releaseTime = seconds;
-    this.releaseCoef = this.calcCoef(seconds, this.targetRatioDR);
+    this.releaseCoef = this.calcCoef(seconds, this.targetRatioDecayRelease);
   }
 
   public setSustainLevel(level: number): void {
     this.sustainLevel = level;
-    // Decay base needs recalculating if sustain changes
-    // But since we calculate Base dynamically in process(), we just update coefs if needed
-    // Actually, strictly speaking, Base depends on Coef.
-    // In this DeltaTime version, we calculate Base inside Process, so just setting level is enough.
   }
 
-  // Calculate the "Per Second" coefficient
   protected calcCoef(rateInSeconds: number, targetRatio: number): number {
-    // Prevent divide by zero
     if (rateInSeconds <= 0) return 0;
-
-    // This calculates the factor for 1.0 second of time
     return Math.exp(-Math.log((1.0 + targetRatio) / targetRatio) / rateInSeconds);
   }
 
