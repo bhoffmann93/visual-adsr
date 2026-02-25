@@ -4,7 +4,7 @@ A TypeScript implementation of an ADSR (Attack, Decay, Sustain, Release) envelop
 
 ## Overview
 
-This ADSR envelope generator is based on the original C++ implementation by Nigel Redmon (EarLevel Engineering) and adapted for TypeScript with deltaTime support for visual elements. It provides smooth, frame-rate independent envelope control suitable for audio synthesis, animation, and any time-based modulation needs.
+This ADSR envelope generator is based on the original C++ implementation by Nigel Redmon (EarLevel Engineering) and adapted for TypeScript with deltaTime support for visual elements. It provides smooth, frame-rate independent envelope control meant to be used for animation – think of it as a sophisticated shaping function.
 
 ## Features
 
@@ -154,10 +154,7 @@ Available presets from `ADSR_PRESETS`:
 
 - Original C++ implementation: Nigel Redmon (EarLevel Engineering)
   - http://www.earlevel.com/main/2013/06/01/envelope-generators/
-- DeltaTime adaptation: Bart Bralski (2014)
+- Processing adaptation: Bart Bralski (2014)
   - https://sourceforge.net/p/processingplayground/code/HEAD/tree/deflemask/ADSR.pde
-- TypeScript port: Bernhard Hoffmann
 
 ## License
-
-MIT

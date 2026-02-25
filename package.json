@@ -1,5 +1,5 @@
 {
-  "name": "@your-username/adsr",
+  "name": "adsr",
   "version": "1.0.0",
   "description": "A TypeScript ADSR (Attack, Decay, Sustain, Release) envelope generator with deltaTime support for frame-independent animation",
   "type": "module",
