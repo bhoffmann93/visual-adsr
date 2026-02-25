@@ -1,6 +1,6 @@
 # adsr-shape
 
-A frame-independent ADSR envelope generator for shaping visual elements and animations. Borrow the expressive, organic curves of synthesizer envelopes — attack, decay, sustain, release — and apply them to anything: scale, opacity, position, color, blur.
+A frame-independent ADSR envelope generator for shaping visual elements and animations. Think of it as a shaping function with — attack, decay, sustain, release.
 
 ```
 value
@@ -30,32 +30,33 @@ npm install adsr-shape
 import { ADSR } from 'adsr-shape';
 
 const env = new ADSR({
-  attack:  0.1,  // seconds to reach peak
-  decay:   0.2,  // seconds to fall to sustain
-  sustain: 0.6,  // hold level (0–1) while triggered
-  release: 0.8,  // seconds to fall back to 0 after release
+  attack: 0.1, // seconds to reach peak
+  decay: 0.2, // seconds to fall to sustain
+  sustain: 0.6, // hold level (0–1) while triggered
+  release: 0.8, // seconds to fall back to 0 after release
 });
 
 // Trigger on pointer down, release on pointer up
 button.addEventListener('pointerdown', () => env.gate(true));
-button.addEventListener('pointerup',   () => env.gate(false));
+button.addEventListener('pointerup', () => env.gate(false));
 
-// Drive any visual property with requestAnimationFrame
 let last = 0;
 function frame(now: number) {
-  const dt    = (now - last) / 1000; // seconds
-  last        = now;
-  const value = env.process(dt);     // 0.0 → 1.0
+  const deltaTime = (now - last) / 1000; // seconds
+  last = now;
+  const value = env.process(deltaTime); // 0.0 → 1.0
 
   circle.style.transform = `scale(${1 + value * 2})`;
-  circle.style.opacity   = String(0.3 + value * 0.7);
+  circle.style.opacity = String(0.3 + value * 0.7);
 
   requestAnimationFrame(frame);
 }
-requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
-```
 
-The loop is frame-rate independent — `process(deltaTime)` takes elapsed seconds, so the shape is consistent at 30fps, 60fps, or 120fps.
+requestAnimationFrame((t) => {
+  last = t;
+  requestAnimationFrame(frame);
+});
+```
 
 ## API
 
@@ -63,27 +64,27 @@ The loop is frame-rate independent — `process(deltaTime)` takes elapsed second
 
 ```typescript
 const env = new ADSR({
-  attack:  0.1,       // seconds
-  decay:   0.2,       // seconds
-  sustain: 0.7,       // 0.0 – 1.0
-  release: 0.5,       // seconds
-  curve:   undefined, // optional — see Curves below
+  attack: 0.1, // seconds
+  decay: 0.2, // seconds
+  sustain: 0.7, // 0.0 – 1.0
+  release: 0.5, // seconds
+  curve: undefined, // optional — see Curves below
 });
 ```
 
 ### Methods
 
-| Method | Description |
-|---|---|
+| Method                        | Description                                                        |
+| ----------------------------- | ------------------------------------------------------------------ |
 | `process(dt: number): number` | Advance the envelope by `dt` seconds. Returns current value `0–1`. |
-| `gate(on: boolean \| number)` | `true` / `1` starts attack. `false` / `0` triggers release. |
-| `getOutput(): number` | Current envelope value without advancing. |
-| `getState(): AdsrState` | `IDLE` · `ATTACK` · `DECAY` · `SUSTAIN` · `RELEASE` |
-| `setAttackTime(s)`  | Update attack duration in seconds. |
-| `setDecayTime(s)`   | Update decay duration in seconds. |
-| `setSustainLevel(n)` | Update sustain level `0–1`. |
-| `setReleaseTime(s)` | Update release duration in seconds. |
-| `reset()` | Snap back to idle / zero output. |
+| `gate(on: boolean \| number)` | `true` / `1` starts attack. `false` / `0` triggers release.        |
+| `getOutput(): number`         | Current envelope value without advancing.                          |
+| `getState(): AdsrState`       | `IDLE` · `ATTACK` · `DECAY` · `SUSTAIN` · `RELEASE`                |
+| `setAttackTime(s)`            | Update attack duration in seconds.                                 |
+| `setDecayTime(s)`             | Update decay duration in seconds.                                  |
+| `setSustainLevel(n)`          | Update sustain level `0–1`.                                        |
+| `setReleaseTime(s)`           | Update release duration in seconds.                                |
+| `reset()`                     | Snap back to idle / zero output.                                   |
 
 ### Curves
 
@@ -93,21 +94,21 @@ The `curve` option controls the exponential character of the shape — how snapp
 import { ADSR, ADSR_CURVE } from 'adsr-shape';
 
 const env = new ADSR({
-  attack:  0.05,
-  decay:   0.3,
+  attack: 0.05,
+  decay: 0.3,
   sustain: 0.0,
   release: 0.2,
   curve: ADSR_CURVE.SNAPPY,
 });
 ```
 
-| Constant | Value | Feel |
-|---|---|---|
-| `ADSR_CURVE.SNAPPY`  | `0.0001` | Sharp, percussive |
-| `ADSR_CURVE.PUNCHY`  | `0.001`  | Punchy, fast |
-| `ADSR_CURVE.ROBOTIC` | `0.1`    | Moderate |
+| Constant             | Value    | Feel               |
+| -------------------- | -------- | ------------------ |
+| `ADSR_CURVE.SNAPPY`  | `0.0001` | Sharp, percussive  |
+| `ADSR_CURVE.PUNCHY`  | `0.001`  | Punchy, fast       |
+| `ADSR_CURVE.ROBOTIC` | `0.1`    | Moderate           |
 | `ADSR_CURVE.DEFAULT` | `0.3`    | Balanced (default) |
-| `ADSR_CURVE.LINEAR`  | `100.0`  | Near-linear |
+| `ADSR_CURVE.LINEAR`  | `100.0`  | Near-linear        |
 
 ### Presets
 
@@ -117,23 +118,24 @@ import { ADSR, ADSR_PRESETS } from 'adsr-shape';
 const env = new ADSR(ADSR_PRESETS.flash);
 ```
 
-| Preset | Character |
-|---|---|
-| `default`    | General purpose |
-| `punchy`     | Instant attack, fast release |
-| `snappy`     | Short pop |
+| Preset       | Character                         |
+| ------------ | --------------------------------- |
+| `default`    | General purpose                   |
+| `punchy`     | Instant attack, fast release      |
+| `snappy`     | Short pop                         |
 | `pad`        | Slow, long release — fades gently |
-| `flash`      | Quick flash, no sustain |
-| `pluck`      | Plucked feel |
-| `pulse`      | Rises and falls with sustain |
-| `mechanical` | Linear, robotic |
-| `smooth`     | Smooth in/out |
+| `flash`      | Quick flash, no sustain           |
+| `pluck`      | Plucked feel                      |
+| `pulse`      | Rises and falls with sustain      |
+| `mechanical` | Linear, robotic                   |
+| `smooth`     | Smooth in/out                     |
 
 ## Example: scale a circle on click
 
 See [`example/index.html`](./example/index.html) for a live demo — adjust attack, decay, sustain, and release with sliders and hold a button to trigger the envelope. An envelope curve preview updates in real time.
 
 To run locally:
+
 ```bash
 npm run build
 # then open example/index.html in a browser
