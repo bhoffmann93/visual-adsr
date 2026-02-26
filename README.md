@@ -20,8 +20,6 @@ The envelope outputs a value between `0.0` and `1.0`. Use it as a multiplier, a 
 # GitHub (no registry required)
 npm install github:bhoffmann93/ADSR
 
-# npm (once published)
-npm install adsr-shape
 ```
 
 ## Quick start
