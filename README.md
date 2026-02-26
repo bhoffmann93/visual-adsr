@@ -2,6 +2,8 @@
 
 A frame-independent ADSR envelope generator intended for animating visual elements. Think of it as a shaping function with — attack, decay, sustain, release — known from audio plugins and synths. Adapted from [Nigel Redmon's envelope generator](https://www.earlevel.com/main/2013/06/01/envelope-generators/).
 
+**[Live demo](https://bhoffmann93.github.io/visual-adsr/example/)**
+
 ```
 value
  1.0 ┤         ╭─╮
@@ -144,7 +146,7 @@ npm run build
 ## Credits
 
 Based on the C++ envelope generator by Nigel Redmon (EarLevel Engineering):
-[earlevel.com — Envelope generators](https://www.earlevel.com/main/2013/06/01/envelope-generators/)
+[earlevel.com — Envelope generators ADSR Code](https://www.earlevel.com/main/2013/06/03/envelope-generators-adsr-code/)
 
 With deltaTime adaptation inspired by Bart Bralski's Processing port (2014).
 
