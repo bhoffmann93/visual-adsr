@@ -1,5 +1,5 @@
 {
-  "name": "adsr-shape",
+  "name": "visual-adsr",
   "version": "1.0.0",
   "description": "Frame-independent ADSR envelope generator for shaping visual elements and animations",
   "type": "module",
@@ -34,10 +34,10 @@
   ],
   "author": "Bernhard Hoffmann",
   "license": "SEE LICENSE IN LICENSE",
-  "homepage": "https://github.com/bhoffmann93/ADSR#readme",
+  "homepage": "https://github.com/bhoffmann93/visual-adsr#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bhoffmann93/ADSR.git"
+    "url": "https://github.com/bhoffmann93/visual-adsr.git"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

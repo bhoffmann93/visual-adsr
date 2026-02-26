@@ -1,6 +1,6 @@
-# adsr
+# visual-adsr
 
-A frame-independent ADSR envelope generator intented for animating visual elements. Think of it as a shaping function with — attack, decay, sustain, release – known from Audio Plugins and Synths.
+A frame-independent ADSR envelope generator intended for animating visual elements. Think of it as a shaping function with — attack, decay, sustain, release — known from audio plugins and synths. Adapted from [Nigel Redmon's envelope generator](https://www.earlevel.com/main/2013/06/01/envelope-generators/).
 
 ```
 value
@@ -18,14 +18,14 @@ The envelope outputs a value between `0.0` and `1.0`. Use it as a multiplier, a 
 
 ```bash
 # GitHub (no registry required)
-npm install github:bhoffmann93/ADSR
+npm install github:bhoffmann93/visual-adsr
 
 ```
 
 ## Quick start
 
 ```typescript
-import { ADSR } from 'adsr-shape';
+import { ADSR } from 'visual-adsr';
 
 const env = new ADSR({
   attack: 0.1, // seconds to reach peak
@@ -89,7 +89,7 @@ const env = new ADSR({
 The `curve` option controls the exponential character of the shape — how snappy or smooth the transitions feel.
 
 ```typescript
-import { ADSR, ADSR_CURVE } from 'adsr-shape';
+import { ADSR, ADSR_CURVE } from 'visual-adsr';
 
 const env = new ADSR({
   attack: 0.05,
@@ -111,7 +111,7 @@ const env = new ADSR({
 ### Presets
 
 ```typescript
-import { ADSR, ADSR_PRESETS } from 'adsr-shape';
+import { ADSR, ADSR_PRESETS } from 'visual-adsr';
 
 const env = new ADSR(ADSR_PRESETS.flash);
 ```
@@ -144,7 +144,7 @@ npm run build
 ## Credits
 
 Based on the C++ envelope generator by Nigel Redmon (EarLevel Engineering):
-http://www.earlevel.com/main/2013/06/01/envelope-generators/
+[earlevel.com — Envelope generators](https://www.earlevel.com/main/2013/06/01/envelope-generators/)
 
 With deltaTime adaptation inspired by Bart Bralski's Processing port (2014).
 
