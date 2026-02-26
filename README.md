@@ -1,6 +1,6 @@
-# adsr-shape
+# adsr
 
-A frame-independent ADSR envelope generator for shaping visual elements and animations. Think of it as a shaping function with — attack, decay, sustain, release.
+A frame-independent ADSR envelope generator intented for animating visual elements. Think of it as a shaping function with — attack, decay, sustain, release – known from Audio Plugins and Synths.
 
 ```
 value
@@ -141,12 +141,6 @@ npm run build
 # then open example/index.html in a browser
 ```
 
-## What it's good for
-
-- Animating CSS transforms (`scale`, `translate`, `rotate`)
-- Driving opacity or color interpolation
-- Controlling blur or shadow intensity
-- Scripting canvas/WebGL effects
 - Anything that benefits from organic, attack/release timing instead of fixed tweens
 
 ## Credits
