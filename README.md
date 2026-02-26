@@ -18,7 +18,7 @@ The envelope outputs a value between `0.0` and `1.0`. Use it as a multiplier, a 
 
 ## ToDo
 
-- [ ] publish on npm
+– publish on npm
 
 ## Install
 
