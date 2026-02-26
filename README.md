@@ -1,6 +1,6 @@
 # visual-adsr
 
-A frame-independent ADSR envelope generator intended for animating visual elements. Think of it as a shaping function with — attack, decay, sustain, release — known from audio plugins and synths. Adapted from [Nigel Redmon's envelope generator](https://www.earlevel.com/main/2013/06/01/envelope-generators/).
+A frame-independent ADSR envelope generator intended for animating visual elements. Think of it as a shaping function with — attack, decay, sustain, release — known from audio plugins and synths. Adapted for Delta Time from Nigel Redmon's envelope generator explained here: [Envelope generators—ADSR Part 1](https://www.earlevel.com/main/2013/06/01/envelope-generators/) & [Envelope generators—ADSR Part 2](https://www.earlevel.com/main/2013/06/02/envelope-generators-adsr-part-2/)
 
 **[Live demo](https://bhoffmann93.github.io/visual-adsr/example/)**
 
