@@ -16,6 +16,10 @@ value
 
 The envelope outputs a value between `0.0` and `1.0`. Use it as a multiplier, a lerp factor, or map it to whatever property you're animating.
 
+## ToDo
+
+- [ ] publish on npm
+
 ## Install
 
 ```bash
