@@ -148,7 +148,7 @@ npm run build
 Based on the C++ envelope generator by Nigel Redmon (EarLevel Engineering):
 [earlevel.com — Envelope generators ADSR Code](https://www.earlevel.com/main/2013/06/03/envelope-generators-adsr-code/)
 
-With deltaTime adaptation inspired by Bart Bralski's Processing port (2014).
+With deltaTime adaptation inspired by Bart Bralski's Processing port (2012). [ADSR.pde](https://sourceforge.net/p/processingplayground/code/HEAD/tree/deflemask/ADSR.pde)
 
 ## License
 
